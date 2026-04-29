@@ -41,6 +41,7 @@ var __importStar = (this && this.__importStar) || (function () {
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var AuthService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthService = void 0;
 const common_1 = require("@nestjs/common");
@@ -49,11 +50,12 @@ const users_service_1 = require("../users/users.service");
 const mail_service_1 = require("../mail/mail.service");
 const cloudinary_service_1 = require("../cloudinary/cloudinary.service");
 const bcrypt = __importStar(require("bcrypt"));
-let AuthService = class AuthService {
+let AuthService = AuthService_1 = class AuthService {
     usersService;
     jwtService;
     mailService;
     cloudinaryService;
+    logger = new common_1.Logger(AuthService_1.name);
     constructor(usersService, jwtService, mailService, cloudinaryService) {
         this.usersService = usersService;
         this.jwtService = jwtService;
@@ -65,11 +67,31 @@ let AuthService = class AuthService {
         return filteredUser;
     }
     async validateUser(email, pass) {
-        const user = await this.usersService.findOneByEmail(email);
-        if (user && user.password && (await bcrypt.compare(pass, user.password))) {
-            return this.filterUserData(user.toObject());
+        if (!email || typeof email !== 'string') {
+            this.logger.warn(`Login attempt with invalid email: ${email}`);
+            throw new common_1.BadRequestException('Email is required and must be a valid string');
         }
-        return null;
+        if (!pass || typeof pass !== 'string') {
+            this.logger.warn(`Login attempt with invalid password format for email: ${email}`);
+            throw new common_1.BadRequestException('Password is required and must be a valid string');
+        }
+        const trimmedEmail = email.trim().toLowerCase();
+        const user = await this.usersService.findOneByEmail(trimmedEmail);
+        if (!user) {
+            this.logger.warn(`Login attempt for non-existent user: ${trimmedEmail}`);
+            throw new common_1.UnauthorizedException('Invalid email or password');
+        }
+        if (!user.password) {
+            this.logger.warn(`Login attempt for user without password: ${trimmedEmail}`);
+            throw new common_1.UnauthorizedException('Invalid email or password');
+        }
+        const isPasswordValid = await bcrypt.compare(pass, user.password);
+        if (!isPasswordValid) {
+            this.logger.warn(`Failed login attempt for user: ${trimmedEmail}`);
+            throw new common_1.UnauthorizedException('Invalid email or password');
+        }
+        this.logger.log(`Successful login for user: ${trimmedEmail}`);
+        return this.filterUserData(user.toObject());
     }
     async login(user) {
         const payload = { email: user.email, sub: user._id };
@@ -137,7 +159,7 @@ let AuthService = class AuthService {
     }
 };
 exports.AuthService = AuthService;
-exports.AuthService = AuthService = __decorate([
+exports.AuthService = AuthService = AuthService_1 = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [users_service_1.UsersService,
         jwt_1.JwtService,

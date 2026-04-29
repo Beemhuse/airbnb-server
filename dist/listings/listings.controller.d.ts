@@ -3,4 +3,5 @@ export declare class ListingsController {
     private readonly listingsService;
     constructor(listingsService: ListingsService);
     findAll(): Promise<import("./listing.schema").ListingDocument[]>;
+    findById(id: string): Promise<import("./listing.schema").ListingDocument>;
 }

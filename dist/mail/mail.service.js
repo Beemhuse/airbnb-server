@@ -23,7 +23,7 @@ let MailService = class MailService {
     async sendOtp(email, otp) {
         try {
             await this.resend.emails.send({
-                from: 'Airbnb <onboarding@resend.dev>',
+                from: 'Airbnb <no-reply@karteq.com.ng>',
                 to: email,
                 subject: 'Your Airbnb Verification Code',
                 html: `<p>Your verification code is: <strong>${otp}</strong></p>`,

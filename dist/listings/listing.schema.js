@@ -17,6 +17,11 @@ let Listing = class Listing {
     price;
     location;
     images;
+    guests;
+    bedrooms;
+    bathrooms;
+    amenities;
+    propertyType;
     rating;
     reviewsCount;
     category;
@@ -42,6 +47,26 @@ __decorate([
     (0, mongoose_1.Prop)([String]),
     __metadata("design:type", Array)
 ], Listing.prototype, "images", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ default: 1 }),
+    __metadata("design:type", Number)
+], Listing.prototype, "guests", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ default: 1 }),
+    __metadata("design:type", Number)
+], Listing.prototype, "bedrooms", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ default: 1 }),
+    __metadata("design:type", Number)
+], Listing.prototype, "bathrooms", void 0);
+__decorate([
+    (0, mongoose_1.Prop)([String]),
+    __metadata("design:type", Array)
+], Listing.prototype, "amenities", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", String)
+], Listing.prototype, "propertyType", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ default: 0 }),
     __metadata("design:type", Number)

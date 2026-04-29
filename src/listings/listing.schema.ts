@@ -20,6 +20,21 @@ export class Listing {
   @Prop([String])
   images: string[];
 
+  @Prop({ default: 1 })
+  guests: number;
+
+  @Prop({ default: 1 })
+  bedrooms: number;
+
+  @Prop({ default: 1 })
+  bathrooms: number;
+
+  @Prop([String])
+  amenities: string[];
+
+  @Prop()
+  propertyType: string;
+
   @Prop({ default: 0 })
   rating: number;
 

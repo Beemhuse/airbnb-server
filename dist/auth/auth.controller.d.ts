@@ -3,12 +3,14 @@ import { UsersService } from '../users/users.service';
 export declare class AuthController {
     private authService;
     private usersService;
+    private readonly logger;
     constructor(authService: AuthService, usersService: UsersService);
-    login(body: any): Promise<{
+    login(body: {
+        email?: string;
+        password?: string;
+    }): Promise<{
         access_token: string;
         user: any;
-    } | {
-        error: string;
     }>;
     register(body: any): Promise<{
         access_token: string;

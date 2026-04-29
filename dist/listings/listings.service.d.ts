@@ -4,5 +4,6 @@ export declare class ListingsService {
     private listingModel;
     constructor(listingModel: Model<ListingDocument>);
     findAll(): Promise<ListingDocument[]>;
+    findById(id: string): Promise<ListingDocument>;
     seed(): Promise<void>;
 }

@@ -7,6 +7,7 @@ export declare class AuthService {
     private jwtService;
     private mailService;
     private cloudinaryService;
+    private readonly logger;
     constructor(usersService: UsersService, jwtService: JwtService, mailService: MailService, cloudinaryService: CloudinaryService);
     filterUserData(user: any): any;
     validateUser(email: string, pass: string): Promise<any>;

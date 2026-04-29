@@ -2,6 +2,7 @@ import {
   Injectable,
   UnauthorizedException,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
@@ -11,6 +12,8 @@ import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
@@ -20,16 +23,52 @@ export class AuthService {
 
   // Helper method to filter sensitive user data
   filterUserData(user: any) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, otp, otpExpires, __v, ...filteredUser } = user;
-    return filteredUser;
+    return filteredUser as any;
   }
 
   async validateUser(email: string, pass: string): Promise<any> {
-    const user = await this.usersService.findOneByEmail(email);
-    if (user && user.password && (await bcrypt.compare(pass, user.password))) {
-      return this.filterUserData(user.toObject());
+    // Strict validation
+    if (!email || typeof email !== 'string') {
+      this.logger.warn(`Login attempt with invalid email: ${email}`);
+      throw new BadRequestException(
+        'Email is required and must be a valid string',
+      );
     }
-    return null;
+
+    if (!pass || typeof pass !== 'string') {
+      this.logger.warn(
+        `Login attempt with invalid password format for email: ${email}`,
+      );
+      throw new BadRequestException(
+        'Password is required and must be a valid string',
+      );
+    }
+
+    const trimmedEmail = email.trim().toLowerCase();
+
+    const user = await this.usersService.findOneByEmail(trimmedEmail);
+    if (!user) {
+      this.logger.warn(`Login attempt for non-existent user: ${trimmedEmail}`);
+      throw new UnauthorizedException('Invalid email or password');
+    }
+
+    if (!user.password) {
+      this.logger.warn(
+        `Login attempt for user without password: ${trimmedEmail}`,
+      );
+      throw new UnauthorizedException('Invalid email or password');
+    }
+
+    const isPasswordValid = await bcrypt.compare(pass, user.password);
+    if (!isPasswordValid) {
+      this.logger.warn(`Failed login attempt for user: ${trimmedEmail}`);
+      throw new UnauthorizedException('Invalid email or password');
+    }
+
+    this.logger.log(`Successful login for user: ${trimmedEmail}`);
+    return this.filterUserData(user.toObject());
   }
 
   async login(user: any) {

@@ -7,6 +7,8 @@ import {
   Request,
   UseInterceptors,
   UploadedFile,
+  BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
@@ -16,17 +18,48 @@ import { UsersService } from '../users/users.service';
 
 @Controller('auth')
 export class AuthController {
+  private readonly logger = new Logger(AuthController.name);
+
   constructor(
     private authService: AuthService,
     private usersService: UsersService,
   ) {}
 
   @Post('login')
-  async login(@Body() body: any) {
-    const user = await this.authService.validateUser(body.email, body.password);
-    if (!user) {
-      return { error: 'Invalid credentials' };
+  async login(@Body() body: { email?: string; password?: string }) {
+    // Strict input validation
+    if (!body || typeof body !== 'object') {
+      this.logger.warn('Login attempt with invalid request body');
+      throw new BadRequestException('Invalid request body');
     }
+
+    if (
+      !body.email ||
+      typeof body.email !== 'string' ||
+      body.email.trim().length === 0
+    ) {
+      this.logger.warn('Login attempt with missing or invalid email');
+      throw new BadRequestException(
+        'Email is required and must be a non-empty string',
+      );
+    }
+
+    if (
+      !body.password ||
+      typeof body.password !== 'string' ||
+      body.password.length === 0
+    ) {
+      this.logger.warn('Login attempt with missing or invalid password');
+      throw new BadRequestException(
+        'Password is required and must be a non-empty string',
+      );
+    }
+
+    // validateUser throws UnauthorizedException for invalid credentials (401)
+    const user = await this.authService.validateUser(
+      body.email.trim(),
+      body.password,
+    );
     return this.authService.login(user);
   }
 
